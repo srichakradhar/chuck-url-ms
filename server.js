@@ -78,7 +78,7 @@ app.get('/new/:url(*)', function (req, res) {
 
 app.get('/:hash', function (req, res) {
   
-  mongo.connect('mongodb://localhost:27017/chuck_urls', function(err, db) {
+  mongo.connect(db_url, function(err, db) {
     
     if (err) throw err;
     
