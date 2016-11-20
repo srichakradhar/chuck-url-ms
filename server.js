@@ -78,6 +78,12 @@ app.get('/new/:url(*)', function (req, res) {
 
 app.get('/:hash', function (req, res) {
   
+  if(req.headers.host == 'chuck-url.herokuapp.com'){
+    db_url = mlab_chuck_url;
+  }else{
+    db_url = local_chuck_url;
+  }
+  
   mongo.connect(db_url, function(err, db) {
     
     if (err) throw err;
