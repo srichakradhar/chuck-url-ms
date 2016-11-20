@@ -3,6 +3,8 @@ var mongo = require('mongodb').MongoClient;
 var validUrl = require('valid-url');
 var app = express();
 var long_url, map_to, response, host_url;
+var mlab_chuck_url = "mongodb://chuck:chuck@ds159217.mlab.com:59217/chuck_url";
+var local_chuck_url = 'mongodb://localhost:27017/chuck_urls', db_url;
 
 app.get('/', function (req, res) {
   res.send("...Chuck's URL Shortner Microservice...");
@@ -14,7 +16,14 @@ app.get('/new/:url(*)', function (req, res) {
   
   if(validUrl.isUri(long_url)){
     
-    mongo.connect('mongodb://localhost:27017/chuck_urls', function(err, db) {
+    if(req.headers.host == 'chuck-url.herokuapp.com'){
+      db_url = mlab_chuck_url;
+    }else{
+      db_url = local_chuck_url;
+    }
+    
+    mongo.connect(db_url, function(err, db) {
+      
       if (err) throw err;
       
       host_url = req.headers["x-forwarded-proto"] + '://' + req.headers.host + '/';
