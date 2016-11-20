@@ -2,7 +2,7 @@ var express = require('express');
 var mongo = require('mongodb').MongoClient;
 var validUrl = require('valid-url');
 var app = express();
-var long_url, map_to, response;
+var long_url, map_to, response, host_url;
 
 app.get('/', function (req, res) {
   res.send("...Chuck's URL Shortner Microservice...");
@@ -17,6 +17,7 @@ app.get('/new/:url(*)', function (req, res) {
     mongo.connect('mongodb://localhost:27017/chuck_urls', function(err, db) {
       if (err) throw err;
       
+      host_url = req.headers["x-forwarded-proto"] + '://' + req.headers.host + '/';
       var url_collection = db.collection('urls');
 
       url_collection.find({
@@ -42,7 +43,7 @@ app.get('/new/:url(*)', function (req, res) {
           	var document = {
           	  hash: map_to,
           	  original_url: long_url,
-          	  chuck_url: 'http://chuck-url.herokuapp.com/' + map_to
+          	  chuck_url: host_url + map_to
           	};
             
           	//insert record
@@ -65,6 +66,37 @@ app.get('/new/:url(*)', function (req, res) {
     
   }
 }); // app.get
+
+app.get('/:hash', function (req, res) {
+  
+  mongo.connect('mongodb://localhost:27017/chuck_urls', function(err, db) {
+    
+    if (err) throw err;
+    
+    host_url = req.headers["x-forwarded-proto"] + '://' + req.headers.host + '/';
+    
+    var url_collection = db.collection('urls');
+
+    url_collection.find({
+      
+      chuck_url: host_url + req.params.hash
+      
+    }).toArray(function(err, url_records){
+      
+      if(err) throw err;
+      
+      if(url_records.length > 0){
+        
+        res.redirect(url_records[0].original_url);
+        
+      }else{
+        
+        res.send({error:"This url is not on the database."});
+        
+      }
+    });
+  });
+});
 
 app.listen(process.env.PORT || 8080, function () {
   console.log('URL Shortner server listening on port 8080!');
