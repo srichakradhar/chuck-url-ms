@@ -3,8 +3,21 @@ var mongo = require('mongodb').MongoClient;
 var validUrl = require('valid-url');
 var app = express();
 var long_url, map_to, response, host_url;
-var mlab_chuck_url = "mongodb://chuck:chuck@ds159217.mlab.com:59217/chuck_url";
-var local_chuck_url = 'mongodb://localhost:27017/chuck_urls', db_url;
+var mlab_chuck_db = "mongodb://chuck:chuck@ds159217.mlab.com:59217/chuck_url";
+var local_chuck_db = 'mongodb://localhost:27017/chuck_urls', db_url;
+
+app.all('*', function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'accept, content-type, x-parse-application-id, x-parse-rest-api-key, x-parse-session-token');
+     // intercept OPTIONS method
+    if ('OPTIONS' == req.method) {
+      res.send(200);
+    }
+    else {
+      next();
+    }
+});
 
 app.get('/', function (req, res) {
   res.send("...Chuck's URL Shortner Microservice...");
@@ -17,9 +30,9 @@ app.get('/new/:url(*)', function (req, res) {
   if(validUrl.isUri(long_url)){
     
     if(req.headers.host == 'chuck-url.herokuapp.com'){
-      db_url = mlab_chuck_url;
+      db_url = mlab_chuck_db;
     }else{
-      db_url = local_chuck_url;
+      db_url = local_chuck_db;
     }
     
     mongo.connect(db_url, function(err, db) {
@@ -79,9 +92,9 @@ app.get('/new/:url(*)', function (req, res) {
 app.get('/:hash', function (req, res) {
   
   if(req.headers.host == 'chuck-url.herokuapp.com'){
-    db_url = mlab_chuck_url;
+    db_url = mlab_chuck_db;
   }else{
-    db_url = local_chuck_url;
+    db_url = local_chuck_db;
   }
   
   mongo.connect(db_url, function(err, db) {
